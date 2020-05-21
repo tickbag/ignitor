@@ -8,8 +8,8 @@ It's very much a work in progress right now. Use at your own risk!
 Initial untested implementations around:
 - State management interface using `IState<TId, TEntity>` to inject state access where-ever it's needed.
 - Immutable data type wrapper class around all data retrieved from the state.
-- You can use `.Unwrap()` to retrieve the data object
-  - All unwrapped data is isolated and does not effect the state, even reference types.
+- You can use `.Emit()` to retrieve the data object
+  - All emitted data is isolated and does not effect the state, even reference types.
 - Includes a highly efficient and specialised deep cloner to achieve data isolation
   - This cloner uses compiled expression trees without recursion to achieve maximum performance (no refkection)
   - In a comparisons with an off-the-shelf cloner library, the Ignitor cloner was around 43x faster.
