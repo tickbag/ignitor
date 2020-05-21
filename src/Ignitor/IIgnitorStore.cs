@@ -1,5 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 
 namespace Ignitor
 {
@@ -16,5 +15,7 @@ namespace Ignitor
         bool TryAdd(TId id, IImmutable<TEntity> value);
 
         void AddOrUpdate(TId id, TEntity value);
+
+        void AddOrUpdate(TId id, IImmutable<TEntity> value);
     }
 }

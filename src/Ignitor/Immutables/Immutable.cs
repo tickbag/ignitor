@@ -1,23 +1,21 @@
 ﻿using System;
 using System.Reflection;
-using Microsoft.Extensions.DependencyInjection;
+using Ignitor.Cloning;
 
 namespace Ignitor.Immutables
 {
     internal class Immutable<TObj> : IImmutable<TObj>
     {
         private readonly Func<TObj, TObj> _cloner;
-        private readonly IServiceProvider _services;
 
         private TObj _state;
 
-        public Immutable(IServiceProvider services, TObj fixedState)
+        public Immutable(TObj value)
         {
-            _state = fixedState;
-            _services = services;
+            _state = value;
 
             var isValueType = typeof(TObj).IsValueType || typeof(TObj) == typeof(string);
-            _cloner = isValueType ? (source) => source : GetClonerFactory(services).GetCloner();
+            _cloner = isValueType ? (source) => source : CloneFactory.GetCloner<TObj>();
         }
 
         public IImmutable this[string propertyName]
@@ -28,7 +26,7 @@ namespace Ignitor.Immutables
             }
         }
 
-        public TObj Unwrap()
+        public TObj Emit()
         {
             return _cloner(_state);
         }
@@ -50,7 +48,7 @@ namespace Ignitor.Immutables
             var property = GetPropertyInfo(propertyName);
 
             var propValue = property.GetValue(_state);
-            var result = CreateImmutable(property.PropertyType, _services, propValue);
+            var result = CreateImmutable(property.PropertyType, propValue);
 
             return result;
         }
@@ -67,7 +65,7 @@ namespace Ignitor.Immutables
 
             for (var idx = 0; idx < array.Length; idx++)
             {
-                newArray[idx] = CreateImmutable(_services, array[idx]);
+                newArray[idx] = new Immutable<TArray>(array[idx]);
             }
 
             return newArray;
@@ -78,7 +76,7 @@ namespace Ignitor.Immutables
             var property = GetPropertyInfo(propertyName);
 
             var propValue = (TRef)property.GetValue(_state);
-            var result = CreateImmutable(_services, propValue);
+            var result = new Immutable<TRef>(propValue);
 
             return result;
         }
@@ -116,6 +114,13 @@ namespace Ignitor.Immutables
         public static bool operator !=(Immutable<TObj> a, TObj b) =>
             !a.Equals(b);
 
+        public static IImmutable CreateImmutable(Type type, object value)
+        {
+            var immutableType = typeof(Immutable<>).MakeGenericType(type);
+
+            return (IImmutable)Activator.CreateInstance(immutableType, value);
+        }
+
         private static PropertyInfo GetPropertyInfo(string propertyName)
         {
             var property = typeof(TObj).GetProperty(propertyName, BindingFlags.Public | BindingFlags.Instance | BindingFlags.Static);
@@ -125,20 +130,7 @@ namespace Ignitor.Immutables
             return property;
         }
 
-        private static IImmutable CreateImmutable(Type type, IServiceProvider services, object value)
-        {
-            var immutableType = typeof(Immutable<>).MakeGenericType(type);
-
-            return (IImmutable)Activator.CreateInstance(immutableType, services, value);
-        }
-
-        private static IImmutable<TNew> CreateImmutable<TNew>(IServiceProvider services, TNew value) =>
-            new Immutable<TNew>(services, value);
-
-        private static ICloner<TObj> GetClonerFactory(IServiceProvider services) =>
-            services.GetRequiredService<ICloner<TObj>>();
-
-        object IImmutable.Unwrap() =>
-            Unwrap();
+        object IImmutable.Emit() =>
+            Emit();
     }
 }

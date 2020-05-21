@@ -1,21 +1,12 @@
-﻿using System;
-using System.Collections;
+﻿using System.Collections;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
-using Ignitor.Immutables;
 
 namespace Ignitor.Transient
 {
     internal class IgnitorStore<TContext, TId, TEntity> : IReadOnlyDictionary<TId, IImmutable<TEntity>>, IIgnitorStore<TContext, TId, TEntity>
     {
         private readonly ConcurrentDictionary<TId, IImmutable<TEntity>> _store = new ConcurrentDictionary<TId, IImmutable<TEntity>>();
-
-        private readonly IServiceProvider _services;
-
-        public IgnitorStore(IServiceProvider services)
-        {
-            _services = services;
-        }
 
         public IImmutable<TEntity> this[TId key]
         {
@@ -45,13 +36,16 @@ namespace Ignitor.Transient
 
         public void AddOrUpdate(TId id, TEntity value)
         {
-            var immutable = new Immutable<TEntity>(_services, value);
+            var immutable = value.MakeImmutable();
             _store.AddOrUpdate(id, immutable, (a, b) => immutable);
         }
 
+        public void AddOrUpdate(TId id, IImmutable<TEntity> value) =>
+            _store.AddOrUpdate(id, value, (a, b) => value);
+
         public bool TryAdd(TId id, TEntity value)
         {
-            var immutable = new Immutable<TEntity>(_services, value);
+            var immutable = value.MakeImmutable();
             return _store.TryAdd(id, immutable);
         }
 

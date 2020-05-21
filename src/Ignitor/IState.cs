@@ -37,6 +37,10 @@ namespace Ignitor
         IStateUpdater<TId, TEntity> GetUpdater<TId, TEntity>(Type context);
 
         IStateUpdater<TEntity> GetUpdater<TId, TEntity>(Type context, TId id);
+
+        IStateNotifier<TId, TEntity> GetNotifier<TId, TEntity>();
+
+        IStateNotifier<TId, TEntity> GetNotifier<TId, TEntity>(Type context);
     }
 
     public interface IState<TId, TEntity>
@@ -50,6 +54,8 @@ namespace Ignitor
         IStateUpdater<TId, TEntity> GetUpdater();
 
         IStateUpdater<TEntity> GetUpdater(TId id);
+
+        IStateNotifier<TId, TEntity> GetNotifier();
     }
 
     public interface IState<TContext, TId, TEntity> : IState<TId, TEntity> { }

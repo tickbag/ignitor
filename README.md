@@ -1,4 +1,4 @@
-# ignitor
+# Ignitor
 Ignite your Blazor project. Opinionated Blazor State management framework developed for the Tickbag project.
 
 This project is in active development flux and will be changing a regular basis over the coming weeks.

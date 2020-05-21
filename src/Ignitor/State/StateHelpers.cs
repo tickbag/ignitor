@@ -24,33 +24,28 @@ namespace Ignitor.State
 
                 _state = state;
 
-                _idProperty = GetIdProperty();
+                _idProperty = GetIdProperty() ?? throw new ArgumentException(_noIdErrorMessage);
             }
 
             public async Task<IImmutable<TEntity>> GetStateAsync(TId id, Func<TId, CancellationToken, Task<TEntity>> defaultValue = null, CancellationToken cancellationToken = default) =>
                 await _state.GetStateAsync(_context, id, defaultValue, cancellationToken);
 
             public async Task<IReadOnlyDictionary<TId, IImmutable<TEntity>>> GetStateAsync(Func<CancellationToken, Task<IAsyncEnumerable<TEntity>>> defaultValue,
-                CancellationToken cancellationToken = default)
-            {
-                _ = _idProperty ?? throw new InvalidOperationException(_noIdErrorMessage);
-
-                return await _state.GetStateAsync(_context, defaultValue, (entity) => (TId)_idProperty.GetValue(entity), cancellationToken);
-            }
+                CancellationToken cancellationToken = default) =>
+                await _state.GetStateAsync(_context, defaultValue, (entity) => (TId)_idProperty.GetValue(entity), cancellationToken);
 
             public async Task<IReadOnlyDictionary<TId, IImmutable<TEntity>>> GetStateAsync(Func<CancellationToken, Task<IEnumerable<TEntity>>> defaultValue = null,
-                CancellationToken cancellationToken = default)
-            {
-                _ = _idProperty ?? throw new InvalidOperationException(_noIdErrorMessage);
-
-                return await _state.GetStateAsync(_context, defaultValue, (entity) => (TId)_idProperty.GetValue(entity), cancellationToken);
-            }
+                CancellationToken cancellationToken = default) =>
+                await _state.GetStateAsync(_context, defaultValue, (entity) => (TId)_idProperty.GetValue(entity), cancellationToken);
 
             public IStateUpdater<TEntity> GetUpdater(TId id) =>
                 _state.GetUpdater<TId, TEntity>(_context, id);
 
             public IStateUpdater<TId, TEntity> GetUpdater() =>
                 _state.GetUpdater<TId, TEntity>(_context);
+
+            public IStateNotifier<TId, TEntity> GetNotifier() =>
+                _state.GetNotifier<TId, TEntity>(_context);
 
             private static PropertyInfo GetIdProperty()
             {

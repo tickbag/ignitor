@@ -103,8 +103,9 @@ namespace Ignitor.State
         public IStateUpdater<TEntity> GetUpdater<TId, TEntity>(Type context, TId id)
         {
             var store = GetStore<TId, TEntity>(context);
+            var notifier = GetNotifier<TId, TEntity>(context);
 
-            return new SingleStateUpdater<TId, TEntity>(store, id);
+            return new SingleStateUpdater<TId, TEntity>(notifier, store, id);
         }
 
         public IStateUpdater<TId, TEntity> GetUpdater<TId, TEntity>() =>
@@ -113,8 +114,19 @@ namespace Ignitor.State
         public IStateUpdater<TId, TEntity> GetUpdater<TId, TEntity>(Type context)
         {
             var store = GetStore<TId, TEntity>(context);
+            var notifier = GetNotifier<TId, TEntity>(context);
 
-            return new StateUpdater<TId, TEntity>(store);
+            return new StateUpdater<TId, TEntity>(notifier, store);
+        }
+
+        public IStateNotifier<TId, TEntity> GetNotifier<TId, TEntity>() =>
+            GetNotifier<TId, TEntity>(typeof(State));
+
+        public IStateNotifier<TId, TEntity> GetNotifier<TId, TEntity>(Type context)
+        {
+            var serviceType = typeof(IStateNotifier<,,>).MakeGenericType(context, typeof(TId), typeof(TEntity));
+
+            return (IStateNotifier<TId, TEntity>)_services.GetRequiredService(serviceType);
         }
 
         private IIgnitorStore<TId, TEntity> GetStore<TId, TEntity>(Type context)
