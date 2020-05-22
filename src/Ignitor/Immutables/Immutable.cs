@@ -97,10 +97,10 @@ namespace Ignitor.Immutables
             _state.Equals(other);
 
         public bool Equals(IImmutable<TObj> other) =>
-            other.Equals(_state);
+            ReferenceEquals(this, other) || other.Equals(_state);
 
         public override bool Equals(object obj) =>
-            _state.Equals(obj);
+            ReferenceEquals(this, obj);
 
         public static bool operator ==(Immutable<TObj> a, IImmutable<TObj> b) =>
             a.Equals(b);

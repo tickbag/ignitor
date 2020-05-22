@@ -11,7 +11,7 @@ namespace Ignitor.State
     {
         internal class StateHelper<TId, TEntity> : IState<TId, TEntity>
         {
-            private static readonly string _noIdErrorMessage = $"No Id has been found or defined on {typeof(TEntity).Name} type.";
+            private static readonly string _noIdErrorMessage = $"No Id has been found or defined on the '{typeof(TEntity).Name}' type.";
 
             private readonly IState _state;
             private readonly PropertyInfo _idProperty;
@@ -24,19 +24,27 @@ namespace Ignitor.State
 
                 _state = state;
 
-                _idProperty = GetIdProperty() ?? throw new ArgumentException(_noIdErrorMessage);
+                _idProperty = GetIdProperty();
             }
 
             public async Task<IImmutable<TEntity>> GetStateAsync(TId id, Func<TId, CancellationToken, Task<TEntity>> defaultValue = null, CancellationToken cancellationToken = default) =>
                 await _state.GetStateAsync(_context, id, defaultValue, cancellationToken);
 
             public async Task<IReadOnlyDictionary<TId, IImmutable<TEntity>>> GetStateAsync(Func<CancellationToken, Task<IAsyncEnumerable<TEntity>>> defaultValue,
-                CancellationToken cancellationToken = default) =>
-                await _state.GetStateAsync(_context, defaultValue, (entity) => (TId)_idProperty.GetValue(entity), cancellationToken);
+                CancellationToken cancellationToken = default)
+            {
+                _ = _idProperty ?? throw new InvalidOperationException(_noIdErrorMessage);
+
+                return await _state.GetStateAsync(_context, defaultValue, (entity) => (TId)_idProperty.GetValue(entity), cancellationToken);
+            }
 
             public async Task<IReadOnlyDictionary<TId, IImmutable<TEntity>>> GetStateAsync(Func<CancellationToken, Task<IEnumerable<TEntity>>> defaultValue = null,
-                CancellationToken cancellationToken = default) =>
-                await _state.GetStateAsync(_context, defaultValue, (entity) => (TId)_idProperty.GetValue(entity), cancellationToken);
+                CancellationToken cancellationToken = default)
+            {
+                _ = _idProperty ?? throw new InvalidOperationException(_noIdErrorMessage);
+
+                return await _state.GetStateAsync(_context, defaultValue, (entity) => (TId)_idProperty.GetValue(entity), cancellationToken);
+            }
 
             public IStateUpdater<TEntity> GetUpdater(TId id) =>
                 _state.GetUpdater<TId, TEntity>(_context, id);
@@ -50,6 +58,9 @@ namespace Ignitor.State
             private static PropertyInfo GetIdProperty()
             {
                 PropertyInfo firstId = null;
+
+                if (typeof(TEntity).IsValueType || typeof(TEntity) == typeof(string) || typeof(TEntity).IsArray)
+                    return null;
 
                 var props = typeof(TEntity).GetProperties();
                 foreach (var prop in props)
