@@ -21,11 +21,18 @@ namespace Ignitor.Cloning
     /// - Only shallow copy Structs - Don't put reference types in your Structs
     /// - initialise types with constructors with parameters as long as they only have simple type arguments
     /// - - If your constructor requires a parameter with a reference type, that type must use a parameterless constructor
-    /// The cloner does not deal with self-referencing and will cause the program to enter an infinte loop, but no-one would be silly enough
-    ///  to construct view models in this way so it shouldn't be a big deal
+    /// - NOT clone types with an object graph deeper than 5. This prevents slow cloning performance and infinite loops due to self-referencing.
     /// </summary>
     public class Cloner<T> : ICloner<T>
     {
+        /// <summary>
+        /// Maximum object graph depth to clone. Any higher than this value and the cloner build function will throw an exception.
+        /// </summary>
+        private const int MaxObjectGraphDepth = 5;
+
+        /// <summary>
+        /// Static cache of the compiled cloning function
+        /// </summary>
         private static Func<T, T> _compiledCloner;
 
         /// <summary>
@@ -49,26 +56,47 @@ namespace Ignitor.Cloning
         }
 
         #region Cloner Expression builder code - HERE BE DRAGONS!
+        /// <summary>
+        /// Creates a cloner function for the specified generic type
+        /// </summary>
+        /// <returns>An uncompiled cloner function for the specifed generic type</returns>
         private static Expression<Func<T, T>> CreateClonerExpression()
         {
             var source = Expression.Parameter(typeof(T), "sourceObj");
 
-            var block = BuildObjectCloner<T>(source);
+            var block = BuildObjectCloner<T>(source, 1);
 
             return Expression.Lambda<Func<T, T>>(block, source);
         }
 
-        private static BlockExpression BuildObjectClonerByType(Type type, ParameterExpression sourceObj)
+        /// <summary>
+        /// Calls the BuildObjectCloner generic method based on a provideed type
+        /// </summary>
+        /// <param name="type">Type to use for the generic call</param>
+        /// <param name="sourceObj">The source object parameter to pass on to the BuildObjectCloner method</param>
+        /// <param name="depth">The current object graph depth</param>
+        /// <returns>A block expression representing the clone procedure for that object type</returns>
+        private static BlockExpression BuildObjectClonerByType(Type type, ParameterExpression sourceObj, int depth)
         {
             var method = typeof(Cloner<T>).GetMethod(nameof(Cloner<object>.BuildObjectCloner), BindingFlags.Static | BindingFlags.NonPublic);
             MethodInfo generic = method.MakeGenericMethod(type);
 
-            return (BlockExpression)generic.Invoke(null, new[] { sourceObj });
+            return (BlockExpression)generic.Invoke(null, new object[] { sourceObj, depth + 1 });
         }
 
-        private static BlockExpression BuildObjectCloner<TObj>(ParameterExpression sourceObj)
+        /// <summary>
+        /// Builds an object cloner for the specifed generic type. This is the main entry point for each traversal of the object graph.
+        /// </summary>
+        /// <typeparam name="TObj">Type to build cloner fragment for</typeparam>
+        /// <param name="sourceObj">Source object parameter</param>
+        /// <param name="depth">Current object graph depth</param>
+        /// <returns>A block expression that handles cloning the type specified and all it's descendant objects with the graph</returns>
+        private static BlockExpression BuildObjectCloner<TObj>(ParameterExpression sourceObj, int depth)
         {
             var type = typeof(TObj);
+
+            if (depth > MaxObjectGraphDepth)
+                throw new InvalidOperationException($"'{type.Name}' - Maximum Object graph depth exceeded. Please flatten your object structure to continue.");
 
             var source = Expression.Parameter(type, type.Name + "Source");
             var sourceVar = Expression.Assign(source, sourceObj);
@@ -87,13 +115,13 @@ namespace Ignitor.Cloning
             switch (type)
             {
                 case Type arrType when arrType.IsArray:
-                    copyExpression.Add(HandleArrayObject(arrType.GetElementType(), source, result));
+                    copyExpression.Add(HandleArrayObject(arrType.GetElementType(), source, result, depth));
                     break;
                 case Type valType when valType.IsValueType || valType == typeof(string):
                     copyExpression.Add(Expression.Assign(result, source));
                     break;
                 default:
-                    copyExpression.AddRange(HandleReferenceTypeObject(type, source, result));
+                    copyExpression.AddRange(HandleReferenceTypeObject(type, source, result, depth));
                     break;
             }
 
@@ -107,7 +135,7 @@ namespace Ignitor.Cloning
             return block;
         }
 
-        private static IEnumerable<Expression> HandleReferenceTypeObject(Type type, ParameterExpression source, ParameterExpression result)
+        private static IEnumerable<Expression> HandleReferenceTypeObject(Type type, ParameterExpression source, ParameterExpression result, int depth)
         {
             if (type.IsInterface)
             {
@@ -164,14 +192,14 @@ namespace Ignitor.Cloning
                 }
                 else
                 {
-                    copyExpression.Add(HandleObjectGraphTraversal(field, source, result));
+                    copyExpression.Add(HandleObjectGraphTraversal(field, source, result, depth));
                 }
             }
 
             return copyExpression;
         }
 
-        private static BlockExpression HandleObjectGraphTraversal(FieldInfo field, ParameterExpression source, ParameterExpression result)
+        private static BlockExpression HandleObjectGraphTraversal(FieldInfo field, ParameterExpression source, ParameterExpression result, int depth)
         {
             var sourceField = Expression.Field(source, field);
             var targetField = Expression.Field(result, field);
@@ -180,13 +208,13 @@ namespace Ignitor.Cloning
 
             var srcObj = Expression.Parameter(field.FieldType, field.FieldType.Name + "SourceCall1");
             expressions.Add(Expression.Assign(srcObj, sourceField));
-            var fragment = BuildObjectClonerByType(field.FieldType, srcObj);
+            var fragment = BuildObjectClonerByType(field.FieldType, srcObj, depth);
             expressions.Add(Expression.Assign(targetField, fragment));
 
             return Expression.Block(new[] { srcObj }, expressions);
         }
 
-        private static BlockExpression HandleArrayObject(Type elementType, ParameterExpression source, ParameterExpression result)
+        private static BlockExpression HandleArrayObject(Type elementType, ParameterExpression source, ParameterExpression result, int depth)
         {
             var arrayLength = Expression.ArrayLength(source);
             var newArray = Expression.NewArrayBounds(elementType, arrayLength);
@@ -204,7 +232,7 @@ namespace Ignitor.Cloning
             if (!elementType.IsValueType)
             {
                 arrayCopyExpr.Add(Expression.Assign(srcParam, arrayValue));
-                var fragment = BuildObjectClonerByType(elementType, srcParam);
+                var fragment = BuildObjectClonerByType(elementType, srcParam, depth);
                 arrayCopyExpr.Add(Expression.Assign(arrayValue, fragment));
             }
             arrayCopyExpr.Add(Expression.Assign(Expression.ArrayAccess(result, arrayIndex), arrayValue));

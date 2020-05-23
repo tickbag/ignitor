@@ -7,12 +7,12 @@ namespace Ignitor
 
     public interface IStateNotifier<TId, TEntity>
     {
-        IDisposable OnAdded(Func<TId, IImmutable<TEntity>, Task> callback);
+        IDisposable OnAdded(Func<TId, IImmutable<TEntity>, Task> callback, TId id = default);
 
-        IDisposable OnUpdated(Func<TId, IImmutable<TEntity>, Task> callback);
+        IDisposable OnUpdated(Func<TId, IImmutable<TEntity>, Task> callback, TId id = default);
 
-        IDisposable OnRemoved(Func<TId, IImmutable<TEntity>, Task> callback);
+        IDisposable OnRemoved(Func<TId, IImmutable<TEntity>, Task> callback, TId id = default);
 
-        IDisposable OnChanged(Func<TId, IImmutable<TEntity>, Task> callback);
+        IDisposable OnChanged(Func<TId, IImmutable<TEntity>, Task> callback, TId id = default);
     }
 }
