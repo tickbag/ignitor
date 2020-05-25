@@ -29,18 +29,18 @@ Initial untested implementations around:
 - Documentation
 
 # Some important points
-Ignitor sets quite strict expectation around what your application's data model should look like.
+Ignitor sets quite strict expectations around what your application's data model should look like.
 It does this to keep immutability and data isolation very fast, and also to keep your web application fast.
 
 Your data model (which forms the application state) must:
 - **Be as flat as possible.**
-  - This means reducing the nesting of data sets where you possibly can. This is quite standard practice for most modern front-end development and shouldn't be a big deal. If you need heavily nest data, you should really think about why you need it at the UI.
-  - Data models with more than 5 levels of nesting will throw an error (just being jelpful and keeping perormance up).
+  - This means reducing the nesting of data sets where you possibly can. This is quite standard practice for most modern front-end development and shouldn't be a big deal. If you need heavily nested data, you should really think about why you need it at the UI.
+  - Data models with more than 5 levels of nesting will throw an error (just being helpful and keeping perormance up).
 - **NOT contain any Lists, Collections or Dictionary's.** Use native Array's instead. If you require the functionality of a Dictionary, put that into its own state within Ignitor.
-- **NOT use Structs with internal reference types.** These won't be handled well and will give unpredicatable results. Incidentally, the major types such as `DateTime`, `DateTimeOffset`, `Guid` and Enums are all fine to use.
+- **NOT use Structs with internal reference types.** These won't be handled well and will give unpredicatable results. Incidentally, the major types such as `DateTime`, `DateTimeOffset`, `Guid` and `Enums` are all fine to use.
 - **NOT have parameterised constructors.** Just keep it simple, no parameters in the constructor.
-- **NOT use interfaces.** The internal cloning functions have no idea how to deal with whatever lies under your interface. Interface are nice and I love them to bits, but for pure data models, we can live without them.
-- **Have both getters and setters for property members.** Immutability is handled via a specialised wrapper class, and have both get and set makes JSON serialisation far easier.
+- **NOT use interfaces.** The internal cloning functions have no idea how to deal with whatever implements your interface. Interfaces are nice and I love them to bits, but for pure data models, we can live without them.
+- **Have both getters and setters for property members.** Immutability is handled via a specialised wrapper class, and having both get and set accessors makes JSON serialisation far easier.
 
 Other than that you should be good to go.
 
