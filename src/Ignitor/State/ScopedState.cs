@@ -9,6 +9,21 @@ using Microsoft.Extensions.DependencyInjection;
 
 namespace Ignitor.State
 {
+    /// <summary>
+    /// Represents an individual block (or scope) of state data. This scope must be unique by Id type, Data type and scope name (if provided).
+    /// This also controls access to the state via <see cref="GetAsync(TId, CancellationToken)">GetAsync</see> and <see cref="Updater(TId)">Updater</see> methods,
+    /// and also monitoring of the state via the <see cref="Monitor">Monitor</see> method.
+    /// <para>
+    /// Scoped state is hierarchical and can have multiple child scopes and a single parent scope.<br/>
+    /// Top level scopes have the Global Application Scope (GAS) as their parent.<br/>
+    /// Scoped state is usually accessed via the GAS, and can thus be accessed from anywhere in the application if the hierarchy is known.<br/>
+    /// If a scoped state is Disposed, all its child scopes are also Disposed.<br/>
+    /// It is also possible to directly inject an IScopedState into a class/Component. In this instance the state will only exist for as long as the class/Component.
+    /// It's lifetime will be limited and it will not accessible from anywhere else. In other words, It will be locally scoped.<br/>
+    /// </para>
+    /// </summary>
+    /// <typeparam name="TId">Type to key/id the state data on</typeparam>
+    /// <typeparam name="TEntity">Type of the state data</typeparam>
     internal class ScopedState<TId, TEntity> : State, IScopedState<TId, TEntity>
     {
         private readonly IIgnitorStore<TId, TEntity> _store;
@@ -25,6 +40,12 @@ namespace Ignitor.State
 
         private Func<TEntity, TId> _idSelector;
 
+        /// <summary>
+        /// Scoped State constructor.
+        /// This should be called by either the State object or the Dependency Injection system.
+        /// </summary>
+        /// <param name="services">The DI system service provider</param>
+        /// <param name="parentState">The parent state to this scoped state</param>
         public ScopedState(IServiceProvider services, IState parentState) :
             base(services)
         {
@@ -39,6 +60,7 @@ namespace Ignitor.State
             _idSelector = (entity) => (TId)_idProperty.GetValue(entity);
         }
 
+        /// <inheritdoc/>
         public async Task<IImmutable<TEntity>> GetAsync(TId id, CancellationToken ct = default)
         {
             if (!_store.ContainsKey(id))
@@ -52,6 +74,7 @@ namespace Ignitor.State
             return _store[id];
         }
 
+        /// <inheritdoc/>
         public async Task<IReadOnlyDictionary<TId, IImmutable<TEntity>>> GetAsync(CancellationToken ct = default)
         {
             if (_store.Count > 0 || (_defaultValuesLoader == null && _defaultAsyncValuesLoader == null))
@@ -60,15 +83,19 @@ namespace Ignitor.State
             return _defaultAsyncValuesLoader != null ? await GetUsingAsyncEnumerable(ct) : await GetUsingEnumeratable(ct);
         }
 
+        /// <inheritdoc/>
         public IStateMonitor<TId, TEntity> Monitor() =>
             _monitor;
 
+        /// <inheritdoc/>
         public IStateUpdater<TEntity> Updater(TId id) =>
             new SingleStateUpdater<TId, TEntity>(_monitor, _store, id);
 
+        /// <inheritdoc/>
         public IStateUpdater<TId, TEntity> Updater() =>
             new StateUpdater<TId, TEntity>(_monitor, _store);
 
+        /// <inheritdoc/>
         public IScopedState<TId, TEntity> Fuel(Func<IState, CancellationToken, Task<IAsyncEnumerable<TEntity>>> defaultValues)
         {
             _defaultAsyncValuesLoader = defaultValues;
@@ -76,6 +103,7 @@ namespace Ignitor.State
             return this;
         }
 
+        /// <inheritdoc/>
         public IScopedState<TId, TEntity> Fuel(Func<IState, CancellationToken, Task<IEnumerable<TEntity>>> defaultValues)
         {
             _defaultValuesLoader = defaultValues;
@@ -83,6 +111,7 @@ namespace Ignitor.State
             return this;
         }
 
+        /// <inheritdoc/>
         public IScopedState<TId, TEntity> Fuel(Func<IState, TId, CancellationToken, Task<TEntity>> defaultValue)
         {
             _defaultValueLoader = defaultValue;
@@ -90,6 +119,7 @@ namespace Ignitor.State
             return this;
         }
 
+        /// <inheritdoc/>
         public IScopedState<TId, TEntity> WithId(Func<TEntity, TId> idSelector)
         {
             _idSelector = idSelector;
@@ -97,6 +127,7 @@ namespace Ignitor.State
             return this;
         }
 
+        /// <inheritdoc/>
         public new void Dispose()
         {
             base.Dispose();

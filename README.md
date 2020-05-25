@@ -17,18 +17,16 @@ Initial untested implementations around:
   - In a comparisons with an off-the-shelf cloner library, the Ignitor cloner was around 43x faster.
   - Ancedotal times: 1 complex type, containing 100,000 complex reference types and 100,000 value types, was cloned in 7ms.
 
-
 # Still to come
-- Process flow using a type of mediator pattern
-  - Mediatr library is unsuitable for Blazor Webassembly apps, so a custom one will need to be created
+- Documentation around the recoommended usage pattern
+  - To create a one-way cyclic flow through the application, the suggestion is to use Jimmy Bogard's `MediatR` library for Actions and Action Handlers
+  - State change is signalled to Components via the State Monitoring built into the Ignitor library.
 - Persistant stores to Local Storage in the browser
   - This will be made available via an `IPersistantState<TId, TEntity>` injectable.
 - General improvements to the library based on actually using it in a project
   - Already a lot of changes have occurred around the `IImmutable` interface
-- XML comments to stop the build warnings
 - Tests really need writing to impart confidence in the library
 - Documentation
-- Pubishing to NuGet
 
 # How to use
 Clone the repo, reference the project from your Blazor project.
@@ -47,10 +45,10 @@ Inject the Global Application State (GAS) into each component that needs it, e.g
 
 Now you can set up and read the state like so:
 ```c#
-var todos = await Gas.Ignite<Guid, Todo>().Fuel((_, ct) => GetDefaultState(ct)).GetAsync(cancellationSource.Token);
+var todos = await Gas.Scope<Guid, Todo>().Fuel((_, ct) => GetDefaultState(ct)).GetAsync(cancellationSource.Token);
 ```
 This creates (or uses) a state object with `Guid` ids and `Todo` models. Default data for the Todo state is loaded via the `Fuel()` method.
-Finally, `GetAsync` provides the state data.
+Finally, `GetAsync()` provides the state data.
 
 In the form above, the state data will be a read-only dictionary of immutable Todo objects.
 
@@ -63,15 +61,22 @@ State is only cleared in 3 scenarios:
 
 You can update the state like this:
 ```c#
-awauit Gas.Ignite<Guid, Todo>().Updater(todoId).Update(new Todo());
+awauit Gas.Scope<Guid, Todo>().Updater(todoId).Update(new Todo());
 ```
 
 ## Immutable objects
 Any data you retrieve from the GAS will be immutable.
 This is enforced by the `IImmutable` wrapper that sits over the object.
 
-The immutable allows you to access properties in the data model via `Value()` and `Ref()` methods. You can also check a value in the immutable via the `Check` method.
-A generic, delegate function called `Get()` allows more nuanced access to the internal data for consumption.
+The immutable allows you to access properties in the data model via `Value()` and `Ref()` methods. You can also check a value in the immutable via the `Check()` method.
+A generic, delegate function called `Extract()` allows more nuanced access to the internal data for consumption.
 
 If you want read/write access to the data in the immutable you'll need to call the `Emit()` method. This will generate an isolated version of the imnmutable data.
 Any changes you make to this emitted object will not affect the original immutable. It's simple a copy of the data.
+
+
+# Contribute
+Any contributions are welcome to the library.
+Feel free to raise Issues or Suggestions or make a more direct contribution - just fork the repository, do your changes and create a pull request.
+
+If you fancy doing a lot more on this, drop me message and request to join the team.

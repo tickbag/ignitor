@@ -3,7 +3,7 @@
 namespace Ignitor
 {
     /// <summary>
-    /// A wrapper around a mutable type to provide immutability
+    /// An immutable version of a mutable type
     /// </summary>
     public interface IImmutable
     {
@@ -95,14 +95,15 @@ namespace Ignitor
         new TObj Emit();
 
         /// <summary>
-        /// Gets a value from the internal immutable.
+        /// Extracts a value from the internal immutable.
         /// Note this operates on an internal clone made at Immutable inception.
-        /// If you modify this clone it will have no affect on the immurable.
+        /// If you modify this clone it will have no affect on the immurable,
+        /// but could lead to unpredictable behaviour so please avoid doing that.
         /// </summary>
         /// <typeparam name="TValue">Type of the value to access</typeparam>
         /// <param name="selector">Property value selector delegate function</param>
         /// <returns>Property value</returns>
-        TValue Get<TValue>(Func<TObj, TValue> selector);
+        TValue Extract<TValue>(Func<TObj, TValue> selector);
 
         /// <summary>
         /// Convenience method to perform a simple predicate check on the contents of this immutable

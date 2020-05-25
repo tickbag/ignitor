@@ -5,7 +5,7 @@ using Ignitor.Cloning;
 namespace Ignitor.Immutables
 {
     /// <summary>
-    /// A wrapper around a mutable type to provide immutability
+    /// An immutable version of a mutable type
     /// </summary>
     internal class Immutable<TObj> : IImmutable<TObj>
     {
@@ -26,7 +26,7 @@ namespace Ignitor.Immutables
 
             _state = value;
 
-            _cloner = CloneFactory.GetCloner<TObj>();
+            _cloner = ClonerFactory.GetCloner<TObj>();
 
             _clone = _cloner(_state);
         }
@@ -108,9 +108,9 @@ namespace Ignitor.Immutables
         /// <typeparam name="TValue">Type of the value to access</typeparam>
         /// <param name="selector">Property value selector delegate function</param>
         /// <returns>Property value</returns>
-        public TValue Get<TValue>(Func<TObj, TValue> selector)
+        public TValue Extract<TValue>(Func<TObj, TValue> selector)
         {
-            var cloner = CloneFactory.GetCloner<TValue>();
+            var cloner = ClonerFactory.GetCloner<TValue>();
             var value = selector.Invoke(_clone);
             return cloner(value);
         }

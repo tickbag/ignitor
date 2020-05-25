@@ -4,6 +4,12 @@ using Ignitor.StateMonitor;
 
 namespace Ignitor.State
 {
+    /// <summary>
+    /// Provides write access to data in the state.
+    /// Use this Updater if you need to write to many different items in the state.
+    /// </summary>
+    /// <typeparam name="TId">The type of the Id for the data</typeparam>
+    /// <typeparam name="TEntity">The type of the data</typeparam>
     internal class StateUpdater<TId, TEntity> : IStateUpdater<TId, TEntity>
     {
         private readonly IIgnitorStore<TId, TEntity> _store;
@@ -15,12 +21,14 @@ namespace Ignitor.State
             _store = store;
         }
 
+        /// <inheritdoc/>
         public Task UpdateAsync(TId id, TEntity newValue, CancellationToken ct = default)
         {
             var immutableValue = newValue != null ? newValue.MakeImmutable() : null;
             return UpdateAsync(id, immutableValue);
         }
 
+        /// <inheritdoc/>
         public async Task UpdateAsync(TId id, IImmutable<TEntity> newValue, CancellationToken ct = default)
         {
             if (newValue == null)
@@ -49,12 +57,18 @@ namespace Ignitor.State
             await _notifier.StateChangedAsync(id, newValue, ct);
         }
 
+        /// <inheritdoc/>
         public void Clear()
         {
             _store.Clear();
         }
     }
 
+    /// <summary>
+    /// Provides write access to a specifc data item in the state.
+    /// </summary>
+    /// <typeparam name="TId">The type of the Id of the data</typeparam>
+    /// <typeparam name="TEntity">The type of the data</typeparam>
     internal class SingleStateUpdater<TId, TEntity> : IStateUpdater<TEntity>
     {
         private readonly IStateSignaling<TId, TEntity> _notifier;
@@ -68,12 +82,14 @@ namespace Ignitor.State
             _id = id;
         }
 
+        /// <inheritdoc/>
         public Task UpdateAsync(TEntity newValue, CancellationToken ct = default)
         {
             var immutableValue = newValue != null ? newValue.MakeImmutable() : null;
             return UpdateAsync(immutableValue);
         }
 
+        /// <inheritdoc/>
         public async Task UpdateAsync(IImmutable<TEntity> newValue, CancellationToken ct = default)
         {
             if (newValue == null)
@@ -100,11 +116,6 @@ namespace Ignitor.State
             }
 
             await _notifier.StateChangedAsync(_id, newValue, ct);
-        }
-
-        public void Clear()
-        {
-            _store.Clear();
         }
     }
 }

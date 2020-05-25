@@ -5,8 +5,17 @@ using Microsoft.Extensions.DependencyInjection;
 
 namespace Ignitor
 {
+    /// <summary>
+    /// Extension to the Service Collection for adding necessary Ignitor services
+    /// </summary>
     public static class ServiceCollectionExtensions
     {
+        /// <summary>
+        /// Add the ignitor framework to this application.
+        /// Registers all required services for Ignitor to work.
+        /// </summary>
+        /// <param name="services">The service collection</param>
+        /// <returns>The service collection</returns>
         public static IServiceCollection AddIgnitor(this IServiceCollection services)
         {
             // Register the state services

@@ -14,10 +14,10 @@ namespace Ignitor.State
             _services = services;
         }
 
-        public IScopedState<TId, TEntity> Ignite<TId, TEntity>() =>
-            Ignite<TId, TEntity>(string.Empty);
+        public IScopedState<TId, TEntity> Scope<TId, TEntity>() =>
+            Scope<TId, TEntity>(string.Empty);
 
-        public IScopedState<TId, TEntity> Ignite<TId, TEntity>(object scope)
+        public IScopedState<TId, TEntity> Scope<TId, TEntity>(object scope)
         {
             var internalScope = $"{typeof(TId).Name}_{typeof(TEntity).Name}_{scope}";
 

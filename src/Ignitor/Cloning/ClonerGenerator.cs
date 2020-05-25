@@ -12,18 +12,19 @@ namespace Ignitor.Cloning
     /// The cloner compiles a dynamically constructed and specifically targeted expression tree down to IL code for execution,
     /// this allows the cloner to operate at speeds over 40x faster than standard reflection techniques.
     /// The cloner is critical for maintaining true immutability in the Ignitor state system.
-    /// 
+    /// <para>
     /// NOTES:
     /// The cloner will:
-    /// - NOT clone Interfaces or any object having Interfaces as fields rather than concrete implementations
-    ///     This is due the fact the cloner has no idea what class lies behind the interface and so can't precompile the cloning algorithm
-    /// - NOT clone Lists, Collections or Dictionaries - Use an array collection of data
-    /// - Only shallow copy Structs - Don't put reference types in your Structs
-    /// - initialise types with constructors with parameters as long as they only have simple type arguments
-    /// - - If your constructor requires a parameter with a reference type, that type must use a parameterless constructor
-    /// - NOT clone types with an object graph deeper than 5. This prevents slow cloning performance and infinite loops due to self-referencing.
+    /// - NOT clone Interfaces or any object having Interfaces as fields rather than concrete implementations<br/>
+    ///     This is due the fact the cloner has no idea what class lies behind the interface and so can't precompile the cloning algorithm<br/>
+    /// - NOT clone Lists, Collections or Dictionaries - Use an array collection of data<br/>
+    /// - Only shallow copy Structs - Don't put reference types in your Structs<br/>
+    /// - initialise types with constructors with parameters as long as they only have simple type arguments<br/>
+    /// - - If your constructor requires a parameter with a reference type, that type must use a parameterless constructor<br/>
+    /// - NOT clone types with an object graph deeper than 5. This prevents slow cloning performance and infinite loops due to self-referencing.<br/>
+    /// </para>
     /// </summary>
-    internal class Cloner<T> : ICloner<T>
+    internal class ClonerGenerator<T> : IClonerGenerator<T>
     {
         /// <summary>
         /// Maximum object graph depth to clone. Any higher than this value and the cloner build function will throw an exception.
@@ -78,7 +79,7 @@ namespace Ignitor.Cloning
         /// <returns>A block expression representing the clone procedure for that object type</returns>
         private static BlockExpression BuildObjectClonerByType(Type type, ParameterExpression sourceObj, int depth)
         {
-            var method = typeof(Cloner<T>).GetMethod(nameof(Cloner<object>.BuildObjectCloner), BindingFlags.Static | BindingFlags.NonPublic);
+            var method = typeof(ClonerGenerator<T>).GetMethod(nameof(ClonerGenerator<object>.BuildObjectCloner), BindingFlags.Static | BindingFlags.NonPublic);
             MethodInfo generic = method.MakeGenericMethod(type);
 
             return (BlockExpression)generic.Invoke(null, new object[] { sourceObj, depth + 1 });

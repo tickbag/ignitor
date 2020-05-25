@@ -3,20 +3,20 @@
   <PropertyGroup>
     <TargetFramework>netstandard2.1</TargetFramework>
     <UserSecretsId>e87cca10-f847-4347-9de5-05108668e057</UserSecretsId>
-    <Version>0.0.2</Version>
+    <Version>0.0.3</Version>
     <Authors>Brendan Hulme</Authors>
     <Company>Tickbag</Company>
     <Description>
       An Opinionated Development framework for Blazor WebAssembly.
-      Includes immutable State Management, rapid data isolation for components and a state access similar to React Hooks.
-      Will soon include event handling flows and persistant stores
+      Includes immutable State Management, rapid data isolation for components, state change monitoring and simple state access inspired by Hooks.
+      Will soon also include persistant stores
       
       This library is still evolving rapidly. Functionality may change and break regularly and in depth testing hasn't been completed yet.
       Use at your own risk.
     </Description>
     <Copyright>Copyright (c) 2020 Tickbag Ltd / Brendan Hulme</Copyright>
     <RepositoryUrl>https://github.com/tickbag/ignitor</RepositoryUrl>
-    <PackageTags>blazor state management framework</PackageTags>
+    <PackageTags>blazor immutable state management framework</PackageTags>
     <PackageLicenseExpression>MIT</PackageLicenseExpression>
   </PropertyGroup>
 
