@@ -3,7 +3,7 @@
   <PropertyGroup>
     <TargetFramework>netstandard2.1</TargetFramework>
     <UserSecretsId>e87cca10-f847-4347-9de5-05108668e057</UserSecretsId>
-    <Version>0.0.1</Version>
+    <Version>0.0.2</Version>
     <Authors>Brendan Hulme</Authors>
     <Company>Tickbag</Company>
     <Description>

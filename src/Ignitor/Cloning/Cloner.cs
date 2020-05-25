@@ -23,7 +23,7 @@ namespace Ignitor.Cloning
     /// - - If your constructor requires a parameter with a reference type, that type must use a parameterless constructor
     /// - NOT clone types with an object graph deeper than 5. This prevents slow cloning performance and infinite loops due to self-referencing.
     /// </summary>
-    public class Cloner<T> : ICloner<T>
+    internal class Cloner<T> : ICloner<T>
     {
         /// <summary>
         /// Maximum object graph depth to clone. Any higher than this value and the cloner build function will throw an exception.
@@ -51,8 +51,8 @@ namespace Ignitor.Cloning
         /// <returns>A specifically trageted deep cloning function</returns>
         private static Func<T, T> CompileCloner()
         {
-            var expression = CreateClonerExpression();
-            return expression.Compile();
+            var isValueType = typeof(T).IsValueType || typeof(T) == typeof(string);
+            return isValueType ? (source) => source : CreateClonerExpression().Compile();
         }
 
         #region Cloner Expression builder code - HERE BE DRAGONS!

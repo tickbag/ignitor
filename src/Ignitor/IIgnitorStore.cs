@@ -2,8 +2,6 @@
 
 namespace Ignitor
 {
-    public interface IIgnitorStore<TContext, TId, TEntity> : IIgnitorStore<TId, TEntity> { }
-
     public interface IIgnitorStore<TId, TEntity> : IReadOnlyDictionary<TId, IImmutable<TEntity>>
     {
         void Remove(TId id);

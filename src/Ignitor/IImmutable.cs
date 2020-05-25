@@ -8,6 +8,21 @@ namespace Ignitor
     public interface IImmutable
     {
         /// <summary>
+        /// Indicated if the base immutable type is an array
+        /// </summary>
+        bool IsArray { get; }
+
+        /// <summary>
+        /// Indicates if the base immutable type is a value type, struct or string
+        /// </summary>
+        bool IsValueType { get; }
+
+        /// <summary>
+        /// Indicates if the immutable value is null 
+        /// </summary>
+        bool IsNull { get; }
+
+        /// <summary>
         /// Indexer for accessing the array of values where the root immutable object is an array
         /// </summary>
         /// <param name="arrayIndex">Index of the array item to access</param>
@@ -36,6 +51,12 @@ namespace Ignitor
         /// <param name="propertyName">The property name of the array</param>
         /// <returns>An array of immutables representing the contents of the referenced array</returns>
         IImmutable<TArray>[] Array<TArray>(string propertyName);
+
+        /// <summary>
+        /// Get the length of the array if this immutable has an array as a base type
+        /// </summary>
+        /// <returns>The length of the array</returns>
+        int ArrayLength();
 
         /// <summary>
         /// Emits a mutable copy of the immutable.
@@ -74,10 +95,22 @@ namespace Ignitor
         new TObj Emit();
 
         /// <summary>
+        /// Gets a value from the internal immutable.
+        /// Note this operates on an internal clone made at Immutable inception.
+        /// If you modify this clone it will have no affect on the immurable.
+        /// </summary>
+        /// <typeparam name="TValue">Type of the value to access</typeparam>
+        /// <param name="selector">Property value selector delegate function</param>
+        /// <returns>Property value</returns>
+        TValue Get<TValue>(Func<TObj, TValue> selector);
+
+        /// <summary>
         /// Convenience method to perform a simple predicate check on the contents of this immutable
+        /// Note this operates on an internal clone made at Immutable inception.
+        /// If you modify this clone it will have no affect on the immurable.
         /// </summary>
         /// <param name="predicate">The predicate expression</param>
         /// <returns>True if the predicate condition is met</returns>
-        bool ValueCheck(Predicate<TObj> predicate);
+        bool Check(Predicate<TObj> predicate);
     }
 }

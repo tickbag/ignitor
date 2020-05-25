@@ -1,5 +1,6 @@
-﻿using System.Threading.Tasks;
-using Ignitor.Notifier;
+﻿using System.Threading;
+using System.Threading.Tasks;
+using Ignitor.StateMonitor;
 
 namespace Ignitor.State
 {
@@ -8,19 +9,19 @@ namespace Ignitor.State
         private readonly IIgnitorStore<TId, TEntity> _store;
         private readonly IStateSignaling<TId, TEntity> _notifier;
 
-        public StateUpdater(IStateNotifier<TId, TEntity> notifier, IIgnitorStore<TId, TEntity> store)
+        public StateUpdater(IStateMonitor<TId, TEntity> notifier, IIgnitorStore<TId, TEntity> store)
         {
             _notifier = (IStateSignaling<TId, TEntity>)notifier;
             _store = store;
         }
 
-        public Task UpdateAsync(TId id, TEntity newValue)
+        public Task UpdateAsync(TId id, TEntity newValue, CancellationToken ct = default)
         {
-            IImmutable<TEntity> immutableValue = newValue != null ? newValue.MakeImmutable() : null;
+            var immutableValue = newValue != null ? newValue.MakeImmutable() : null;
             return UpdateAsync(id, immutableValue);
         }
 
-        public async Task UpdateAsync(TId id, IImmutable<TEntity> newValue)
+        public async Task UpdateAsync(TId id, IImmutable<TEntity> newValue, CancellationToken ct = default)
         {
             if (newValue == null)
             {
@@ -28,7 +29,7 @@ namespace Ignitor.State
                 {
                     newValue = _store[id];
                     _store.Remove(id);
-                    await _notifier.StateItemRemovedAsync(id, newValue);
+                    await _notifier.StateItemRemovedAsync(id, newValue, ct);
                 }
             }
             else
@@ -36,16 +37,16 @@ namespace Ignitor.State
                 if (_store.ContainsKey(id))
                 {
                     _store.AddOrUpdate(id, newValue);
-                    await _notifier.StateItemUpdatedAsync(id, newValue);
+                    await _notifier.StateItemUpdatedAsync(id, newValue, ct);
                 }
                 else
                 {
                     _store.TryAdd(id, newValue);
-                    await _notifier.StateItemAddedAsync(id, newValue);
+                    await _notifier.StateItemAddedAsync(id, newValue, ct);
                 }
             }
 
-            await _notifier.StateChangedAsync(id, newValue);
+            await _notifier.StateChangedAsync(id, newValue, ct);
         }
 
         public void Clear()
@@ -60,20 +61,20 @@ namespace Ignitor.State
         private readonly IIgnitorStore<TId, TEntity> _store;
         private readonly TId _id;
 
-        public SingleStateUpdater(IStateNotifier<TId, TEntity> notifier, IIgnitorStore<TId, TEntity> store, TId id)
+        public SingleStateUpdater(IStateMonitor<TId, TEntity> notifier, IIgnitorStore<TId, TEntity> store, TId id)
         {
             _notifier = (IStateSignaling<TId, TEntity>)notifier;
             _store = store;
             _id = id;
         }
 
-        public Task UpdateAsync(TEntity newValue)
+        public Task UpdateAsync(TEntity newValue, CancellationToken ct = default)
         {
-            IImmutable<TEntity> immutableValue = newValue != null ? newValue.MakeImmutable() : null;
+            var immutableValue = newValue != null ? newValue.MakeImmutable() : null;
             return UpdateAsync(immutableValue);
         }
 
-        public async Task UpdateAsync(IImmutable<TEntity> newValue)
+        public async Task UpdateAsync(IImmutable<TEntity> newValue, CancellationToken ct = default)
         {
             if (newValue == null)
             {
@@ -81,7 +82,7 @@ namespace Ignitor.State
                 {
                     newValue = _store[_id];
                     _store.Remove(_id);
-                    await _notifier.StateItemRemovedAsync(_id, newValue);
+                    await _notifier.StateItemRemovedAsync(_id, newValue, ct);
                 }
             }
             else
@@ -89,16 +90,16 @@ namespace Ignitor.State
                 if (_store.ContainsKey(_id))
                 {
                     _store.AddOrUpdate(_id, newValue);
-                    await _notifier.StateItemUpdatedAsync(_id, newValue);
+                    await _notifier.StateItemUpdatedAsync(_id, newValue, ct);
                 }
                 else
                 {
                     _store.TryAdd(_id, newValue);
-                    await _notifier.StateItemAddedAsync(_id, newValue);
+                    await _notifier.StateItemAddedAsync(_id, newValue, ct);
                 }
             }
 
-            await _notifier.StateChangedAsync(_id, newValue);
+            await _notifier.StateChangedAsync(_id, newValue, ct);
         }
 
         public void Clear()

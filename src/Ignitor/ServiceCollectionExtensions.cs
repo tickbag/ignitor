@@ -1,7 +1,7 @@
-﻿using Ignitor.Notifier;
+﻿using Ignitor.State;
+using Ignitor.StateMonitor;
 using Ignitor.Transient;
 using Microsoft.Extensions.DependencyInjection;
-using static Ignitor.State.StateHelpers;
 
 namespace Ignitor
 {
@@ -9,16 +9,17 @@ namespace Ignitor
     {
         public static IServiceCollection AddIgnitor(this IServiceCollection services)
         {
-            // Register the Concurrent Store (Dictionary)
-            services.AddSingleton(typeof(IIgnitorStore<,,>), typeof(IgnitorStore<,,>));
-
             // Register the state services
-            services.AddTransient<IState, State.State>();
-            services.AddTransient(typeof(IState<,>), typeof(StateHelper<,>));
-            services.AddTransient(typeof(IState<,,>), typeof(StateHelper<,,>));
+            services.AddSingleton<IState, State.State>();
+            services.AddSingleton(typeof(IState<>), typeof(State<>));
 
-            // State notification system
-            services.AddSingleton(typeof(IStateNotifier<,,>), typeof(StateNotifier<,,>));
+            services.AddTransient(typeof(IScopedState<,>), typeof(ScopedState<,>));
+
+            // Register the Concurrent Store (Dictionary)
+            services.AddTransient(typeof(IIgnitorStore<,>), typeof(IgnitorStore<,>));
+
+            // State monitoring system
+            services.AddTransient(typeof(IStateMonitor<,>), typeof(StateMonitor<,>));
 
             return services;
         }

@@ -4,7 +4,7 @@ using System.Collections.Generic;
 
 namespace Ignitor.Transient
 {
-    internal class IgnitorStore<TContext, TId, TEntity> : IReadOnlyDictionary<TId, IImmutable<TEntity>>, IIgnitorStore<TContext, TId, TEntity>
+    internal class IgnitorStore<TId, TEntity> : IReadOnlyDictionary<TId, IImmutable<TEntity>>, IIgnitorStore<TId, TEntity>
     {
         private readonly ConcurrentDictionary<TId, IImmutable<TEntity>> _store = new ConcurrentDictionary<TId, IImmutable<TEntity>>();
 

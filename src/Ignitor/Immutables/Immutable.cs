@@ -13,7 +13,8 @@ namespace Ignitor.Immutables
 
         private Type _type;
 
-        private TObj _state;
+        private readonly TObj _state;
+        private readonly TObj _clone;
 
         /// <summary>
         /// Construct a new Immutable from a mutable object
@@ -25,9 +26,25 @@ namespace Ignitor.Immutables
 
             _state = value;
 
-            var isValueType = _type.IsValueType || _type == typeof(string);
-            _cloner = isValueType ? (source) => source : CloneFactory.GetCloner<TObj>();
+            _cloner = CloneFactory.GetCloner<TObj>();
+
+            _clone = _cloner(_state);
         }
+
+        /// <summary>
+        /// Indicated if the base immutable type is an array
+        /// </summary>
+        public bool IsArray { get => _type.IsArray; }
+
+        /// <summary>
+        /// Indicates if the base immutable type is a value type, struct or string
+        /// </summary>
+        public bool IsValueType { get => _type.IsValueType || _type == typeof(string); }
+
+        /// <summary>
+        /// Indicates if the immutable value is null 
+        /// </summary>
+        public bool IsNull { get => _state == null; }
 
         /// <summary>
         /// Indexer for accessing the array of values where the root immutable object is an array
@@ -81,7 +98,22 @@ namespace Ignitor.Immutables
         /// <param name="propertyName">The property name of the value type</param>
         /// <returns>The value of the property</returns>
         public TValue Value<TValue>(string propertyName) =>
-            (TValue)Value(propertyName);
+            (TValue) Value(propertyName);
+
+        /// <summary>
+        /// Gets a value from the internal immutable.
+        /// Note this operates on an internal clone made at Immutable inception.
+        /// If you modify this clone it will have no affect on the immurable.
+        /// </summary>
+        /// <typeparam name="TValue">Type of the value to access</typeparam>
+        /// <param name="selector">Property value selector delegate function</param>
+        /// <returns>Property value</returns>
+        public TValue Get<TValue>(Func<TObj, TValue> selector)
+        {
+            var cloner = CloneFactory.GetCloner<TValue>();
+            var value = selector.Invoke(_clone);
+            return cloner(value);
+        }
 
         /// <summary>
         /// Access a reference type within the immutable object
@@ -139,12 +171,26 @@ namespace Ignitor.Immutables
         }
 
         /// <summary>
+        /// Get the length of the array if this immutable has an array as a base type
+        /// </summary>
+        /// <returns>The length of the array</returns>
+        public int ArrayLength()
+        {
+            if (!_type.IsArray)
+                throw new InvalidOperationException($"Immutable of type '{typeof(TObj).Name}' is not an array.");
+
+            return (int)_type.GetProperty("Length").GetValue(_state);
+        }
+
+        /// <summary>
         /// Convenience method to perform a simple predicate check on the contents of this immutable
+        /// Note this operates on an internal clone made at Immutable inception.
+        /// If you modify this clone it will have no affect on the immurable.
         /// </summary>
         /// <param name="predicate">The predicate expression</param>
         /// <returns>True if the predicate condition is met</returns>
-        public bool ValueCheck(Predicate<TObj> predicate) =>
-            predicate.Invoke(_state);
+        public bool Check(Predicate<TObj> predicate) =>
+            predicate.Invoke(_clone);
 
         /// <inheritdoc/>
         public override int GetHashCode() =>
