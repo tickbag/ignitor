@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Concurrent;
+using System.Diagnostics.CodeAnalysis;
 
 namespace Ignitor.Cloning
 {
@@ -14,6 +15,7 @@ namespace Ignitor.Cloning
     /// </para>
     /// Note: Structs are only shallow copied.
     /// </summary>
+    [ExcludeFromCodeCoverage]
     public static class ClonerFactory
     {
         private static ConcurrentDictionary<Type, IClonerGenerator> _cloners = new ConcurrentDictionary<Type, IClonerGenerator>();

@@ -82,7 +82,18 @@ namespace Ignitor.Cloning
             var method = typeof(ClonerGenerator<T>).GetMethod(nameof(ClonerGenerator<object>.BuildObjectCloner), BindingFlags.Static | BindingFlags.NonPublic);
             MethodInfo generic = method.MakeGenericMethod(type);
 
-            return (BlockExpression)generic.Invoke(null, new object[] { sourceObj, depth + 1 });
+            try
+            {
+                return (BlockExpression)generic.Invoke(null, new object[] { sourceObj, depth + 1 });
+            }
+            catch (TargetInvocationException tiex)
+            {
+                if (tiex.InnerException.GetType() == typeof(InvalidOperationException))
+                {
+                    throw tiex.InnerException;
+                }
+                throw;
+            }
         }
 
         /// <summary>
@@ -148,13 +159,13 @@ namespace Ignitor.Cloning
             }
             if (typeof(IList).IsAssignableFrom(type))
             {
-                throw new InvalidOperationException($"'{source.Type.Name}' - Unable to clone types derived from IList. Consider using an array instead. ");
+                throw new InvalidOperationException($"'{source.Type.Name}' - Unable to clone types derived from IList. Consider using an array instead.");
             }
 
             var copyExpression = new List<Expression>();
 
             var constructors = type.GetConstructors();
-            var ctor = constructors.Length > 0 ? constructors[0] : throw new ArgumentException("Object has no constructor.");
+            var ctor = constructors.Length > 0 ? constructors[0] : throw new InvalidOperationException("Object has no constructor.");
             var ctorParams = ctor.GetParameters();
 
             Expression newObj;

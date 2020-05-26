@@ -1,4 +1,5 @@
-﻿using Ignitor.State;
+﻿using System.Diagnostics.CodeAnalysis;
+using Ignitor.State;
 using Ignitor.StateMonitor;
 using Ignitor.Transient;
 using Microsoft.Extensions.DependencyInjection;
@@ -8,6 +9,7 @@ namespace Ignitor
     /// <summary>
     /// Extension to the Service Collection for adding necessary Ignitor services
     /// </summary>
+    [ExcludeFromCodeCoverage]
     public static class ServiceCollectionExtensions
     {
         /// <summary>

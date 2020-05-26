@@ -58,7 +58,10 @@ namespace Ignitor.Immutables
                 if (!_type.IsArray)
                     throw new InvalidOperationException($"Immutable of type '{typeof(TObj).Name}' is not an array.");
 
-                var arrayValue = _type.GetMethod("GetValue").Invoke(_state, new object[] { arrayIndex });
+                if (arrayIndex > ArrayLength() - 1)
+                    throw new IndexOutOfRangeException("Index was out of range. Must be non-negative and less than the size of the collection.");
+
+                var arrayValue = _type.GetMethod("GetValue", new[] { typeof(int) }).Invoke(_state, new object[] { arrayIndex });
 
                 return CreateImmutable(_type.GetElementType(), arrayValue);
             }
@@ -86,7 +89,7 @@ namespace Ignitor.Immutables
             var propType = property.PropertyType;
 
             if (!propType.IsValueType && propType != typeof(string))
-                throw new ArgumentException($"Property '{propertyName}' is not a immutable value type");
+                throw new ArgumentException($"Property '{propertyName}' is not a immutable value type.");
 
             return property.GetValue(_state);
         }
@@ -98,7 +101,7 @@ namespace Ignitor.Immutables
         /// <param name="propertyName">The property name of the value type</param>
         /// <returns>The value of the property</returns>
         public TValue Value<TValue>(string propertyName) =>
-            (TValue) Value(propertyName);
+            (TValue)Value(propertyName);
 
         /// <summary>
         /// Gets a value from the internal immutable.
@@ -157,7 +160,7 @@ namespace Ignitor.Immutables
             var property = GetPropertyInfo(propertyName);
 
             if (!property.PropertyType.IsArray)
-                throw new ArgumentException($"Property '{propertyName}' is not an Array type'");
+                throw new ArgumentException($"Property '{propertyName}' is not an Array type.");
 
             var array = (TArray[])property.GetValue(_state);
             var newArray = new IImmutable<TArray>[array.Length];
@@ -236,7 +239,7 @@ namespace Ignitor.Immutables
         object IImmutable.Emit() =>
             Emit();
 
-        public static IImmutable CreateImmutable(Type type, object value)
+        internal static IImmutable CreateImmutable(Type type, object value)
         {
             var immutableType = typeof(Immutable<>).MakeGenericType(type);
 
@@ -247,7 +250,7 @@ namespace Ignitor.Immutables
         {
             var property = typeof(TObj).GetProperty(propertyName, BindingFlags.Public | BindingFlags.Instance | BindingFlags.Static);
             if (property == null)
-                throw new ArgumentException($"Property '{propertyName}' does not exist on this object");
+                throw new ArgumentException($"Property '{propertyName}' does not exist on this object.");
 
             return property;
         }
