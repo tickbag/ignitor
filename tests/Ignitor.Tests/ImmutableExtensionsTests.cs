@@ -1,7 +1,6 @@
 using FluentAssertions;
 using Ignitor.Immutables;
 using System;
-using System.Collections.Generic;
 using Xunit;
 
 namespace Ignitor.Tests
@@ -40,7 +39,7 @@ namespace Ignitor.Tests
                 ShouldCreateImmutable_WhenCalled((object)null);
             }
 
-            public void ShouldCreateImmutable_WhenCalled<T>(T subject)
+            private void ShouldCreateImmutable_WhenCalled<T>(T subject)
             {
                 // Arrange
                 var subjectType = typeof(Immutable<T>);
