@@ -3,16 +3,16 @@
   <PropertyGroup>
     <TargetFramework>netstandard2.1</TargetFramework>
     <UserSecretsId>e87cca10-f847-4347-9de5-05108668e057</UserSecretsId>
-    <Version>0.0.4</Version>
+    <Version>0.0.5</Version>
     <Authors>Brendan Hulme</Authors>
     <Company>Tickbag</Company>
     <Description>
-      An Opinionated Development framework for Blazor WebAssembly.
-      Includes immutable State Management, rapid data isolation for components, state change monitoring and simple state access inspired by Hooks.
-      Will soon also include persistant stores
+An Opinionated Development framework for Blazor WebAssembly.
+Includes immutable State Management, rapid data isolation for components, state change monitoring and simple state access inspired by Hooks.
+Will soon also include persistant stores
       
-      This library is still evolving rapidly. Functionality may change and break regularly and in depth testing hasn't been completed yet.
-      Use at your own risk.
+This library is still evolving rapidly. Functionality may change and break regularly and in depth testing hasn't been completed yet.
+Use at your own risk.
     </Description>
     <Copyright>Copyright (c) 2020 Tickbag Ltd / Brendan Hulme</Copyright>
     <RepositoryUrl>https://github.com/tickbag/ignitor</RepositoryUrl>
@@ -22,7 +22,6 @@
 
   <ItemGroup>
     <PackageReference Include="Microsoft.Extensions.DependencyInjection.Abstractions" Version="3.1.4" />
-    <PackageReference Include="System.Linq.Async" Version="4.1.1" />
   </ItemGroup>
 
   <ItemGroup>

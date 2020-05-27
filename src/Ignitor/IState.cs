@@ -28,6 +28,40 @@ namespace Ignitor
         /// <param name="scope">An additional scoping parameter such as a Guid or string, ToString is called on whatever object is provided</param>
         /// <returns>A scoped state for the Id and Entity type requested</returns>
         IScopedState<TId, TEntity> Scope<TId, TEntity>(object scope);
+
+        /// <summary>
+        /// Check whether the specified scope exists within this state
+        /// </summary>
+        /// <typeparam name="TId">Type of the key/id of the scope</typeparam>
+        /// <typeparam name="TEntity">Type of the state data of the scope</typeparam>
+        /// <returns>True if the scope exists</returns>
+        bool HasScope<TId, TEntity>();
+
+        /// <summary>
+        /// Check whether the specified scope exists within this state
+        /// </summary>
+        /// <typeparam name="TId">Type of the key/id of the scope</typeparam>
+        /// <typeparam name="TEntity">Type of the state data of the scope</typeparam>
+        /// <param name="scope">An additional scoping parameter such as a Guid or string, ToString is called on whatever object is provided</param>
+        /// <returns>True if the scope exists</returns>
+        bool HasScope<TId, TEntity>(object scope);
+
+        /// <summary>
+        /// Removes a specific scope from this state, calling its Dispose method first.
+        /// If the scope does not exists, no action is performed.
+        /// </summary>
+        /// <typeparam name="TId">Type of the key/id of the scope</typeparam>
+        /// <typeparam name="TEntity">Type of the state data of the scope</typeparam>
+        void RemoveScope<TId, TEntity>();
+
+        /// <summary>
+        /// Removes a specific scope from this state, calling its Dispose method first.
+        /// If the scope does not exists, no action is performed.
+        /// </summary>
+        /// <typeparam name="TId">Type of the key/id of the scope</typeparam>
+        /// <typeparam name="TEntity">Type of the state data of the scope</typeparam>
+        /// <param name="scope">An additional scoping parameter such as a Guid or string, ToString is called on whatever object is provided</param>
+        void RemoveScope<TId, TEntity>(object scope);
     }
 
     /// <summary>

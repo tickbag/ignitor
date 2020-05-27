@@ -5,7 +5,6 @@ using System.Reflection;
 using System.Threading;
 using System.Threading.Tasks;
 using Ignitor.Attributes;
-using Microsoft.Extensions.DependencyInjection;
 
 namespace Ignitor.State
 {
@@ -26,34 +25,37 @@ namespace Ignitor.State
     /// <typeparam name="TEntity">Type of the state data</typeparam>
     internal class ScopedState<TId, TEntity> : State, IScopedState<TId, TEntity>
     {
+        private readonly IState _parentState;
+
         private readonly IIgnitorStore<TId, TEntity> _store;
         private readonly IStateMonitor<TId, TEntity> _monitor;
 
         private readonly PropertyInfo _idProperty;
 
-        private readonly IServiceProvider _services;
-        private readonly IState _parentState;
+        private Func<TEntity, TId> _idSelector;
 
         private Func<IState, TId, CancellationToken, Task<TEntity>> _defaultValueLoader = null;
         private Func<IState, CancellationToken, Task<IAsyncEnumerable<TEntity>>> _defaultAsyncValuesLoader = null;
         private Func<IState, CancellationToken, Task<IEnumerable<TEntity>>> _defaultValuesLoader = null;
 
-        private Func<TEntity, TId> _idSelector;
-
         /// <summary>
         /// Scoped State constructor.
         /// This should be called by either the State object or the Dependency Injection system.
         /// </summary>
-        /// <param name="services">The DI system service provider</param>
         /// <param name="parentState">The parent state to this scoped state</param>
-        public ScopedState(IServiceProvider services, IState parentState) :
-            base(services)
+        /// <param name="scopedStateFactory">The scope state factory</param>
+        /// <param name="store">The dta store for this scoped state</param>
+        /// <param name="monitor">The state monitor service for this scoped state</param>
+        public ScopedState(IState parentState,
+            IScopedStateFactory scopedStateFactory,
+            IIgnitorStore<TId, TEntity> store,
+            IStateMonitor<TId, TEntity> monitor) :
+            base(scopedStateFactory)
         {
-            _services = services;
             _parentState = parentState;
 
-            _store = services.GetRequiredService<IIgnitorStore<TId, TEntity>>();
-            _monitor = _services.GetRequiredService<IStateMonitor<TId, TEntity>>();
+            _store = store;
+            _monitor = monitor;
 
             // Id selector defaults
             _idProperty = GetIdProperty();

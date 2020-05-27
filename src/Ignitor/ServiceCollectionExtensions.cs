@@ -26,6 +26,8 @@ namespace Ignitor
 
             services.AddTransient(typeof(IScopedState<,>), typeof(ScopedState<,>));
 
+            services.AddTransient<IScopedStateFactory, ScopedStateFactory>();
+
             // Register the Concurrent Store (Dictionary)
             services.AddTransient(typeof(IIgnitorStore<,>), typeof(IgnitorStore<,>));
 
