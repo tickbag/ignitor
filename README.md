@@ -46,7 +46,7 @@ You can find some more information over in the [Wiki](https://github.com/tickbag
 This is slowly expanding with more information about the how to use the Ignitor library.
 
 Install the library via NuGet:
-```
+```c#
 Install-Package Ignitor
 ```
 
@@ -62,10 +62,15 @@ Inject the Global Application State (GAS) into each component that needs it, e.g
 @inject IState Gas
 ```
 
-Now you can set up and read the state like so:
+Now you can set up the state like so:
 ```c#
-var todos = await Gas.Scope<Guid, Todo>().Fuel((_, ct) => GetDefaultState(ct)).GetAsync(cancellationSource.Token);
+var todoScope = Gas.Scope<Guid, Todo>().Fuel((_, ct) => GetDefaultState(ct));
 ```
+And read the state like so:
+```c#
+var todos = await todoScope.GetAsync(cancellationSource.Token);
+```
+
 This creates (or uses) a state object with `Guid` ids and `Todo` models. Default data for the Todo state is loaded via the `Fuel()` method.
 Finally, `GetAsync()` provides the state data.
 
@@ -80,7 +85,7 @@ State is only cleared in 3 scenarios:
 
 You can update the state like this:
 ```c#
-awauit Gas.Scope<Guid, Todo>().Updater(todoId).Update(new Todo());
+await Gas.Scope<Guid, Todo>().Updater(todoId).Update(new Todo());
 ```
 
 ## Immutable objects
