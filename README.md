@@ -20,7 +20,6 @@ Initial untested implementations around:
 # Still to come
 - Documentation around the recoommended usage pattern
   - To create a one-way cyclic flow through the application, the suggestion is to use Jimmy Bogard's `MediatR` library for Actions and Action Handlers
-  - State change is signalled to Components via the State Monitoring built into the Ignitor library.
 - Persistant stores to Local Storage in the browser
   - This will be made available via an `IPersistantState<TId, TEntity>` injectable.
 - Tests really need writing to impart confidence in the library
