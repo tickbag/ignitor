@@ -23,8 +23,6 @@ Initial untested implementations around:
   - State change is signalled to Components via the State Monitoring built into the Ignitor library.
 - Persistant stores to Local Storage in the browser
   - This will be made available via an `IPersistantState<TId, TEntity>` injectable.
-- General improvements to the library based on actually using it in a project
-  - Already a lot of changes have occurred around the `IImmutable` interface
 - Tests really need writing to impart confidence in the library
 - Documentation
 
