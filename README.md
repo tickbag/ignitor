@@ -45,6 +45,9 @@ Your data model (which forms the application state) must:
 Other than that you should be good to go.
 
 # How to use
+You can find some more information over in the [Wiki](https://github.com/tickbag/ignitor/wiki/).
+This is slowly expanding with more information about the how to use the Ignitor library.
+
 Clone the repo, reference the project from your Blazor project.
 
 Add :
